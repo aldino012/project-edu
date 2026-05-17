@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # 1. DATABASE
+  db-edu:
+    image: postgres:15
+    container_name: postgres-edu
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT_EXTERNAL}:5432"
+    volumes:
+      - pgdata_edu:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. BACKEND
+  backend-edu:
+    image: aldino012/backend-edu:latest
+    build: ./backend
+    container_name: backend-edu
+    restart: always
+    ports:
+      - "${BE_PORT_EXTERNAL}:3000"
+    volumes:
+      # UPDATE: Path diarahkan ke folder backend agar file audio/gambar terbaca
+      - ./backend/src/uploads:/app/src/uploads
+    environment:
+      DB_HOST: db-edu 
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_DIALECT: postgres
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+    depends_on:
+      db-edu:
+        condition: service_healthy
+
+  # 3. FRONTEND
+  frontend-edu:
+    image: aldino012/frontend-edu:latest
+    build: ./tampilan-app
+    container_name: frontend-edu
+    restart: always
+    ports:
+      - "${FE_EXTERNAL_PORT:-8080}:80" 
+    depends_on:
+      - backend-edu
+
+  # 4. TUNNELING (Cloudflare Quick Tunnel - Otomatis Online)
+  cf-tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare-tunnel
+    restart: always
+    # Perintah untuk tunneling tanpa akun & tanpa kartu
+    command: tunnel --url http://frontend-edu:80
+    depends_on:
+      - frontend-edu
+
+volumes:
+  pgdata_edu:

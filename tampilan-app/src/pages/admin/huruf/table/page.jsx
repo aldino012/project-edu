@@ -1,0 +1,272 @@
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import Text from "../../../../components/Text";
+import Button from "../../../../components/Button";
+
+// IMPORT HOOK DAN KOMPONEN PAGINATION GLOBAL
+import usePagination from "../../../../hooks/usePagination";
+import Pagination from "../../../../components/Pagination";
+import Search from "../../../../components/Search";
+
+import useTableHuruf from "../hook/useTableHuruf";
+import {
+  FaPlus,
+  FaSync,
+  FaEdit,
+  FaTrash,
+  FaFont,
+  FaImage,
+} from "react-icons/fa";
+import { IoSearch } from "react-icons/io5";
+
+const TableHuruf = () => {
+  const navigate = useNavigate();
+
+  const { dataHuruf, isLoading, isSyncing, handleBulkImport, handleDelete } =
+    useTableHuruf();
+
+  // STATE UNTUK MENAMPUNG HASIL PENCARIAN
+  const [filteredData, setFilteredData] = useState(dataHuruf);
+
+  // MENGGUNAKAN PAGINATION GLOBAL DENGAN DATA YANG SUDAH DI FILTER
+  const { currentPage, totalPages, currentItems, nextPage, prevPage } =
+    usePagination(filteredData);
+
+  // Handler untuk hasil pencarian
+  const handleSearchResults = (results) => {
+    setFilteredData(results);
+  };
+
+  return (
+    <div className="space-y-6 relative">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 gap-4">
+        <div>
+          <Text
+            textKey="admin_huruf_title"
+            variant="subtitle"
+            className="text-slate-800 font-black text-xl flex items-center gap-2"
+          >
+            <FaFont className="text-blue-500" />
+            Data Huruf
+          </Text>
+
+          <p className="text-slate-500 text-sm mt-1 font-medium">
+            Total:{" "}
+            <span className="text-blue-600 font-bold">{dataHuruf.length}</span>{" "}
+            Huruf terdaftar
+            {filteredData.length !== dataHuruf.length && (
+              <span className="text-green-600 ml-2">
+                (Menampilkan {filteredData.length} hasil)
+              </span>
+            )}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+          {/* SYNC BUTTON */}
+          <Button
+            onClick={handleBulkImport}
+            disabled={isSyncing}
+            variant="secondary"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-slate-200 bg-white text-slate-600 hover:border-blue-400 hover:text-blue-600 shadow-sm transition-all flex-1 sm:flex-none"
+          >
+            <FaSync className={`${isSyncing ? "animate-spin" : ""}`} />
+            <span className="font-bold">
+              {isSyncing ? "Menyinkronkan..." : "Sync Data"}
+            </span>
+          </Button>
+
+          {/* ADD BUTTON */}
+          <Button
+            onClick={() => navigate("/admin/huruf/add")}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white shadow-[0_4px_0_#1d4ed8] active:translate-y-1 active:shadow-none transition-all flex-1 sm:flex-none"
+          >
+            <FaPlus />
+            <span className="font-bold">Tambah Baru</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* SEARCH BAR */}
+      <div className="flex justify-end">
+        <Search
+          data={dataHuruf}
+          onSearchResults={handleSearchResults}
+          searchFields={['label', 'value']}
+          placeholder="Cari huruf berdasarkan nama atau huruf..."
+          className="w-full sm:w-80 md:w-96"
+        />
+      </div>
+
+      {/* TABLE CONTAINER */}
+      <div className="bg-white rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 overflow-hidden">
+        {isLoading ? (
+          <div className="p-16 flex flex-col items-center justify-center">
+            <FaSync className="animate-spin text-4xl text-blue-400 mb-4" />
+            <Text className="text-slate-500 font-bold animate-pulse">
+              Memuat Data...
+            </Text>
+          </div>
+        ) : filteredData.length === 0 ? (
+          <div className="p-16 text-center">
+            <div className="flex flex-col items-center gap-4">
+              <IoSearch className="text-6xl text-slate-300" />
+              <Text className="text-slate-400 font-bold text-lg">
+                {dataHuruf.length === 0 
+                  ? "Belum ada data huruf terdaftar."
+                  : "Tidak ada hasil yang sesuai dengan pencarian."}
+              </Text>
+              {dataHuruf.length > 0 && (
+                <Button
+                  onClick={() => setFilteredData(dataHuruf)}
+                  variant="secondary"
+                  className="mt-2 px-6 py-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100"
+                >
+                  Tampilkan Semua Data
+                </Button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto pb-4">
+            <table className="w-full text-left border-collapse">
+              {/* THEAD */}
+              <thead className="bg-slate-50/80 border-b border-slate-200">
+                <tr>
+                  <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">
+                    No
+                  </th>
+                  <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest whitespace-nowrap text-center">
+                    Huruf
+                  </th>
+                  <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">
+                    Label Nama
+                  </th>
+                  <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest whitespace-nowrap text-center">
+                    Gambar
+                  </th>
+                  <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">
+                    Audio Suara
+                  </th>
+                  <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest whitespace-nowrap text-center">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+
+              {/* TBODY - MENGGUNAKAN currentItems BUKAN dataHuruf */}
+              <tbody className="divide-y divide-slate-100">
+                {currentItems.map((item, index) => {
+                  const ITEMS_PER_PAGE = 10;
+                  const rowNumber = (currentPage - 1) * ITEMS_PER_PAGE + index + 1;
+                  
+                  return (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-slate-50 transition-colors duration-200 group"
+                    >
+                      {/* NOMOR URUT DINAMIS BERDASARKAN HALAMAN */}
+                      <td className="px-6 py-4 text-slate-400 font-bold">
+                        {rowNumber}
+                      </td>
+
+                      {/* HURUF VISUAL */}
+                      <td className="px-6 py-4 text-center">
+                        <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl border-2 border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                          <span className="font-black text-2xl uppercase">
+                            {item.value}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* LABEL */}
+                      <td className="px-6 py-4 font-black text-slate-700 uppercase tracking-wide">
+                        {item.label}
+                      </td>
+
+                      {/* GAMBAR */}
+                      <td className="px-6 py-4 text-center">
+                        {item.image_url ? (
+                          <div className="flex justify-center">
+                            <img
+                              src={item.image_url}
+                              alt={item.label}
+                              className="w-14 h-14 object-contain rounded-xl border border-slate-200 bg-white shadow-sm hover:scale-110 transition-transform"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-slate-300">
+                            <FaImage size={24} className="mb-1 opacity-50" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">
+                              Kosong
+                            </span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* AUDIO */}
+                      <td className="px-6 py-4">
+                        {item.audio_url ? (
+                          <audio
+                            src={item.audio_url}
+                            controls
+                            className="h-10 w-48 outline-none rounded-full grayscale hover:grayscale-0 transition-all opacity-80 hover:opacity-100"
+                          />
+                        ) : (
+                          <span className="text-xs font-bold text-slate-400 italic bg-slate-100 px-3 py-1.5 rounded-lg">
+                            Tidak ada audio
+                          </span>
+                        )}
+                      </td>
+
+                      {/* AKSI */}
+                      <td className="px-6 py-4">
+                        <div className="flex justify-center items-center gap-3">
+                          <button
+                            onClick={() =>
+                              navigate(`/admin/huruf/edit/${item.id}`)
+                            }
+                            className="p-3 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 tooltip"
+                            title="Edit Huruf"
+                          >
+                            <FaEdit size={16} />
+                          </button>
+
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="p-3 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
+                            title="Hapus Huruf"
+                          >
+                            <FaTrash size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {/* KOMPONEN PAGINATION GLOBAL DI BAWAH TABEL */}
+            {filteredData.length > 0 && (
+              <div className="w-full pt-4 pb-2 border-t border-slate-100 bg-white/50 flex justify-center">
+                <div className="transform scale-90 -mt-6 md:-mt-8">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPrev={prevPage}
+                    onNext={nextPage}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default TableHuruf;
