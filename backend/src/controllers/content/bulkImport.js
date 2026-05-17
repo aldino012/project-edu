@@ -121,12 +121,34 @@ const bulkImportSamples = async (req, res) => {
           // Cek duplikasi berdasarkan Hex value
           if (existingValues.includes(item.value.toUpperCase())) continue;
 
+          // --- LOGIKA COPY AUDIO WARNA ---
+          // Mengambil label dan menjadikannya huruf kecil (contoh: "Merah Muda" -> "merah muda.mp3")
+          const audioFileName = `${item.label.toLowerCase()}.mp3`;
+          const sampleAudioSrc = path.join(
+            sampleBasePath,
+            `audio/warna/${audioFileName}`
+          );
+
+          let audioUrlToSave = null;
+
+          // Cek apakah file mp3 tersedia di folder sample
+          if (fs.existsSync(sampleAudioSrc)) {
+            // Copy file audio ke folder uploads
+            fs.copyFileSync(
+              sampleAudioSrc,
+              path.join(uploadAudioPath, audioFileName)
+            );
+            // Set URL untuk disimpan di database
+            audioUrlToSave = `/uploads/audio/${audioFileName}`;
+          }
+          // -------------------------------
+
           results.push({
             category_id: category.id,
             value: item.value.toUpperCase(),
-            label: item.label, // Warna sudah ada di JSON, jadi langsung ambil
+            label: item.label,
             image_url: null,
-            audio_url: null,
+            audio_url: audioUrlToSave,
           });
         }
       } else {
