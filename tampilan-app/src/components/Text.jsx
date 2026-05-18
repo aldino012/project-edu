@@ -47,7 +47,7 @@ export const APP_TEXTS = {
   quiz_retry: "Main Lagi",
 
   // --- Form & Label ---
-  label_huruf: "Karakter Huruf", // Spesifik untuk form huruf
+  label_huruf: "Karakter Huruf",
   label_kategori: "Nama Kategori",
   label_upload_img: "Upload Gambar",
   label_upload_aud: "Upload Audio",
@@ -65,6 +65,70 @@ export const APP_TEXTS = {
   // --- Feedback / Status ---
   loading: "Memuat data...",
   error_fetch: "Gagal mengambil data dari server",
+
+  // ==========================================
+  // DATA SINKRONISASI (DARI API)
+  // ==========================================
+  
+  // --- DATA ANGKA (value & label) ---
+  sync_angka_0: "Nol",
+  sync_angka_1: "Satu",
+  sync_angka_2: "Dua",
+  sync_angka_3: "Tiga",
+  sync_angka_4: "Empat",
+  sync_angka_5: "Lima",
+  sync_angka_6: "Enam",
+  sync_angka_7: "Tujuh",
+  sync_angka_8: "Delapan",
+  sync_angka_9: "Sembilan",
+
+  // --- DATA HURUF (value & label) ---
+  sync_huruf_A: "Ayam",
+  sync_huruf_B: "Babi",
+  sync_huruf_C: "Cicak",
+  sync_huruf_D: "Domba",
+  sync_huruf_E: "Elang",
+  sync_huruf_F: "Flaminggo",
+  sync_huruf_G: "Gajah",
+  sync_huruf_H: "Harimau",
+  sync_huruf_I: "Itik",
+  sync_huruf_J: "Jerapah",
+  sync_huruf_K: "Kucing",
+  sync_huruf_L: "Lebah",
+  sync_huruf_M: "Monyet",
+  sync_huruf_N: "Naga",
+  sync_huruf_O: "Orang Utan",
+  sync_huruf_P: "Pinguin",
+  sync_huruf_Q: "Quran",
+  sync_huruf_R: "Rubah",
+  sync_huruf_S: "Sapi",
+  sync_huruf_T: "T-Rex",
+  sync_huruf_U: "Ular",
+  sync_huruf_V: "Violin",
+  sync_huruf_W: "Wortel",
+  sync_huruf_X: "Xesophone",
+  sync_huruf_Y: "Yuyu",
+  sync_huruf_Z: "Zebrah",
+
+  // --- DATA WARNA (value & label) ---
+  sync_warna_merah: "Merah",
+  sync_warna_biru: "Biru",
+  sync_warna_kuning: "Kuning",
+  sync_warna_hijau: "Hijau",
+  sync_warna_hitam: "Hitam",
+  sync_warna_putih: "Putih",
+  sync_warna_coklat: "Coklat",
+  sync_warna_ungu: "Ungu",
+  sync_warna_oranye: "Oranye",
+  sync_warna_merah_muda: "Merah Muda",
+
+  // --- Informasi Sinkronisasi ---
+  sync_info_title: "Informasi Sinkronisasi Data",
+  sync_info_description: "Data berikut akan disinkronkan dari server ke aplikasi",
+  sync_total_data: "Total Data Tersedia",
+  sync_category_angka: "Angka",
+  sync_category_huruf: "Huruf",
+  sync_category_warna: "Warna",
 };
 
 // ==========================================
@@ -80,6 +144,11 @@ const Text = ({
   ...props
 }) => {
   let content = APP_TEXTS[textKey];
+
+  // Jika tidak ditemukan, coba cari dengan format sync_ (untuk data dinamis)
+  if (!content && textKey && textKey.startsWith("sync_")) {
+    content = APP_TEXTS[textKey] || textKey;
+  }
 
   if (!content) {
     content = children || textKey;
@@ -105,10 +174,10 @@ const Text = ({
       "text-6xl md:text-8xl font-black drop-shadow-[0_6px_0_rgba(0,0,0,0.2)] hover:scale-110 transition-transform cursor-pointer",
     admin_nav:
       "text-sm font-semibold tracking-wide hover:text-blue-500 transition-colors",
-    // Tambahan variant untuk teks footer atau label kecil di login
     caption: "text-[10px] font-bold uppercase tracking-wider opacity-60",
-    // Variant khusus untuk header tabel admin
     table_head: "text-xs font-bold text-slate-500 uppercase tracking-wider",
+    info: "text-sm font-medium leading-relaxed",
+    info_title: "text-lg md:text-xl font-bold tracking-wide",
   };
 
   const alignments = {
@@ -124,6 +193,7 @@ const Text = ({
     else if (variant === "alphabet") Component = "span";
     else if (variant === "label" || variant === "table_head")
       Component = "label";
+    else if (variant === "info_title") Component = "h3";
     else Component = "p";
   }
 
