@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Text from "../../../../components/Text";
 import Button from "../../../../components/Button";
+import Table from "../../../../components/Table"; // IMPORT TABLE GLOBAL
 
 // IMPORT HOOK DAN KOMPONEN PAGINATION GLOBAL
 import usePagination from "../../../../hooks/usePagination";
@@ -9,7 +10,7 @@ import Pagination from "../../../../components/Pagination";
 import Search from "../../../../components/Search";
 
 import { useWarnaTable } from "../hook/useWarnaTable";
-import { FaPlus, FaSync, FaEdit, FaTrash, FaInfoCircle, FaPalette  } from "react-icons/fa";
+import { FaPlus, FaSync, FaEdit, FaTrash, FaInfoCircle, FaPalette } from "react-icons/fa";
 import { IoSearch } from "react-icons/io5";
 
 const TableWarna = () => {
@@ -42,6 +43,18 @@ const TableWarna = () => {
   // Handler untuk hasil pencarian
   const handleSearchResults = (results) => {
     setFilteredData(results);
+  };
+
+  // Handler untuk edit
+  const handleEdit = (row) => {
+    navigate(`/admin/warna/edit/${row.id}`);
+  };
+
+  // Handler untuk delete dengan konfirmasi
+  const handleDeleteItem = (row) => {
+    if (window.confirm(`Apakah Anda yakin ingin menghapus warna "${row.label}"?`)) {
+      handleDelete(row.id);
+    }
   };
 
   // Toggle popup info
@@ -102,6 +115,57 @@ const TableWarna = () => {
       document.removeEventListener('keydown', handleEscKey);
     };
   }, [showInfoPopup]);
+
+  // DEFINISI KOLOM - MEMPERTAHANKAN TAMPILAN ASLI
+  const columns = [
+    {
+      header: "No",
+      accessor: "no",
+      headerClassName: "text-left",
+      cellClassName: "text-slate-400 font-bold text-sm",
+      render: (row, index, currentPage, rowNumber) => rowNumber,
+    },
+    {
+      header: "Visual & Kode",
+      accessor: "value",
+      render: (row) => (
+        <div className="flex items-center gap-4">
+          <div
+            style={{ backgroundColor: row.value }}
+            className="w-10 h-10 rounded-full border-4 border-slate-100 shadow-sm group-hover:scale-110 transition-transform cursor-pointer"
+            title={row.value}
+          />
+          <span className="font-mono text-sm font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg uppercase tracking-wider group-hover:bg-white group-hover:text-blue-600 transition-colors">
+            {row.value}
+          </span>
+        </div>
+      ),
+    },
+    {
+      header: "Label Nama",
+      accessor: "label",
+      cellClassName: "font-black text-slate-700 tracking-wide",
+      render: (row) => row.label,
+    },
+    {
+      header: "Audio Suara",
+      accessor: "audio_url",
+      render: (row) => (
+        row.audio_url ? (
+          <audio
+            controls
+            src={row.audio_url}
+            className="h-10 w-48 outline-none rounded-full grayscale hover:grayscale-0 transition-all opacity-80 hover:opacity-100"
+            preload="metadata"
+          />
+        ) : (
+          <span className="text-xs font-bold text-slate-400 italic bg-slate-100 px-3 py-1.5 rounded-lg">
+            Tidak ada audio
+          </span>
+        )
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -275,7 +339,7 @@ const TableWarna = () => {
         />
       </div>
 
-      {/* TABLE CONTAINER */}
+      {/* TABLE CONTAINER - MENGGUNAKAN TABLE GLOBAL */}
       <div className="bg-white rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 overflow-hidden">
         {isLoading ? (
           <div className="p-16 flex flex-col items-center justify-center">
@@ -310,98 +374,16 @@ const TableWarna = () => {
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto pb-4">
-            <table className="w-full text-left border-collapse">
-              {/* THEAD */}
-              <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0">
-                <tr>
-                  <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">
-                    No
-                  </th>
-                  <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">
-                    Visual & Kode
-                  </th>
-                  <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">
-                    Label Nama
-                  </th>
-                  <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">
-                    Audio Suara
-                  </th>
-                  <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest whitespace-nowrap text-center">
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
-
-              {/* TBODY - Menggunakan currentItems */}
-              <tbody className="divide-y divide-slate-100">
-                {currentItems.map((item, index) => {
-                  const ITEMS_PER_PAGE = 10;
-                  const rowNumber = (currentPage - 1) * ITEMS_PER_PAGE + index + 1;
-                  
-                  return (
-                    <tr
-                      key={item.id}
-                      className="hover:bg-slate-50 transition-colors duration-200 group"
-                    >
-                      <td className="px-6 py-4 text-slate-400 font-bold text-sm">
-                        {rowNumber}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <div
-                            style={{ backgroundColor: item.value }}
-                            className="w-10 h-10 rounded-full border-4 border-slate-100 shadow-sm group-hover:scale-110 transition-transform cursor-pointer"
-                            title={item.value}
-                          />
-                          <span className="font-mono text-sm font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg uppercase tracking-wider group-hover:bg-white group-hover:text-blue-600 transition-colors">
-                            {item.value}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-black text-slate-700 tracking-wide">
-                        {item.label}
-                      </td>
-                      <td className="px-6 py-4">
-                        {item.audio_url ? (
-                          <audio
-                            controls
-                            src={item.audio_url}
-                            className="h-10 w-48 outline-none rounded-full grayscale hover:grayscale-0 transition-all opacity-80 hover:opacity-100"
-                            preload="metadata"
-                          />
-                        ) : (
-                          <span className="text-xs font-bold text-slate-400 italic bg-slate-100 px-3 py-1.5 rounded-lg">
-                            Tidak ada audio
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex justify-center items-center gap-3">
-                          <button
-                            onClick={() =>
-                              navigate(`/admin/warna/edit/${item.id}`)
-                            }
-                            className="p-3 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            title="Edit Warna"
-                          >
-                            <FaEdit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="p-3 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-500"
-                            title="Hapus Warna"
-                          >
-                            <FaTrash size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
+          <>
+            <Table
+              columns={columns}
+              data={currentItems}
+              onEdit={handleEdit}
+              onDelete={handleDeleteItem}
+              currentPage={currentPage}
+              itemsPerPage={10}
+            />
+            
             {/* PAGINATION */}
             {filteredData.length > 0 && (
               <div className="w-full pt-4 pb-2 border-t border-slate-100 bg-white/50 flex justify-center">
@@ -415,12 +397,12 @@ const TableWarna = () => {
                 </div>
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
 
       {/* Tambahkan CSS untuk custom scrollbar */}
-      <style jsx>{`
+      <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
         }
